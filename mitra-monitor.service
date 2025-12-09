@@ -1,0 +1,18 @@
+[Unit]
+Description=Mitra Application Health Monitor and Auto-Restart
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+# Assumes the scripts folder is copied to /home/mitra/app/guacamole/scripts/
+# Adjust this path if you place the script elsewhere.
+ExecStart=/bin/bash /home/mitra/app/guacamole/monitor_mitra.sh
+Restart=always
+RestartSec=10
+User=root
+# Environment variables can be added here if necessary
+# Environment=VAR=value
+
+[Install]
+WantedBy=multi-user.target
