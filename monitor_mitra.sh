@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Configuration
-APP_DIR="/home/mitra/app/guacamole"
-STACK_NAME="guacamole4436"
+APP_DIR=""
+STACK_NAME=""
 HEALTH_URL="https://localhost:8080/version"
-CHECK_INTERVAL=60 # Seconds between checks
+CHECK_INTERVAL=15 # Seconds between checks
 MAX_FAILURES=3
 RESTART_WAIT_TIME=20 # Seconds to wait between stack rm and deploy
 
@@ -20,7 +20,7 @@ log_message() {
 touch "$LOG_FILE" 2>/dev/null || { echo "Cannot write to $LOG_FILE. Running without log file."; LOG_FILE="/dev/null"; }
 
 log_message "Starting Mitra Application Monitor..."
-log_message "Monitoring URL: $HEALTH_URL"
+log_message "Monitoring URL: $HEALTH_URL on each $CHECK_INTERVAL seconds"
 
 FAILURE_COUNT=0
 
