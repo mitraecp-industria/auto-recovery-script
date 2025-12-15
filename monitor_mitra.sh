@@ -1,12 +1,17 @@
 #!/bin/bash
 
 # Configuration
-APP_DIR=""
-STACK_NAME=""
+APP_DIR="/mnt/mitradisk/app/prod2"
+STACK_NAME="prod2"
 HEALTH_URL="https://localhost:8080/version"
-CHECK_INTERVAL=15 # Seconds between checks
+CHECK_INTERVAL=30 # Seconds between checks
 MAX_FAILURES=3
 RESTART_WAIT_TIME=20 # Seconds to wait between stack rm and deploy
+WAITING_AFTER_RESTART=180 # Seconds to wait after restart sequence completly
+
+MAINTENANCE_WINDOW_START="0655"
+MAINTENANCE_WINDOW_END="0715"
+WAIT_AFTER_MAINTENANCE_WINDOW=60 # Seconds to wait after maintenance window
 
 # Log file
 LOG_FILE="/var/log/mitra_monitor.log"
@@ -25,6 +30,15 @@ log_message "Monitoring URL: $HEALTH_URL on each $CHECK_INTERVAL seconds"
 FAILURE_COUNT=0
 
 while true; do
+    # Maintenance window check: 06:55 to 07:15
+    # During this period, we skip health checks to allow for scheduled maintenance
+    current_time=$(date +%H%M)
+    if [[ "$current_time" -ge "$MAINTENANCE_WINDOW_START" && "$current_time" -le "$MAINTENANCE_WINDOW_END" ]]; then
+        log_message "Maintenance window ($MAINTENANCE_WINDOW_START-$MAINTENANCE_WINDOW_END). Skipping health check."
+        sleep "$WAIT_AFTER_MAINTENANCE_WINDOW"
+        continue
+    fi
+
     # Check health URL
     # -s: Silent mode
     # -f: Fail silently (no output) on HTTP errors (4xx, 5xx)
@@ -53,23 +67,15 @@ while true; do
                 log_message "Warning: Thread dump script not found at $APP_DIR/gerar_thread_dump.sh"
             fi
             
-            # 2. Update docker images
-            log_message "Pulling updated docker images..."
-            if [ -f "$APP_DIR/docker-compose.yaml" ]; then
-                (cd "$APP_DIR" && docker-compose pull) >> "$LOG_FILE" 2>&1
-            else
-                 log_message "Warning: docker-compose.yaml not found at $APP_DIR"
-            fi
-            
-            # 3. Remove docker stack
+            # 2. Remove docker stack
             log_message "Removing docker stack: $STACK_NAME"
             docker stack rm "$STACK_NAME" >> "$LOG_FILE" 2>&1
             
-            # 4. Wait
+            # 3. Wait
             log_message "Waiting ${RESTART_WAIT_TIME} seconds..."
             sleep "$RESTART_WAIT_TIME"
             
-            # 5. Deploy docker stack
+            # 4. Deploy docker stack
             COMPOSE_FILE="$APP_DIR/docker-compose.yaml"
             if [ -f "$COMPOSE_FILE" ]; then
                 log_message "Deploying docker stack from $COMPOSE_FILE"
@@ -77,6 +83,9 @@ while true; do
             else
                 log_message "CRITICAL ERROR: Docker compose file not found at $COMPOSE_FILE"
             fi
+
+            # 5. Wait for restart sequence to complete
+            sleep "$WAITING_AFTER_RESTART"
             
             # Reset counter after restart attempt to allow time for startup
             # We might want to give it a grace period, but the loop will just count up again if it fails immediately.
