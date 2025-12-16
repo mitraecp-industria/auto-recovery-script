@@ -5,7 +5,7 @@ Requires=docker.service
 
 [Service]
 Type=simple
-ExecStart=/bin/bash /mnt/mitradisk/app/hp/monitor_mitra.sh
+ExecStart=/bin/bash /home/mitra/app/guacamole/monitor_mitra.sh
 Restart=always
 RestartSec=10
 User=root
