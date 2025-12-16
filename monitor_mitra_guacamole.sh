@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Configuration
-APP_DIR="/mnt/mitradisk/app/prod2"
-STACK_NAME="prod2"
-HEALTH_URL="https://localhost:8080/version"
+APP_DIR="/home/mitra/app/guacamole"
+STACK_NAME="guacamole4436"
+HEALTH_URL="https://localhost/version"
 CHECK_INTERVAL=30 # Seconds between checks
 MAX_FAILURES=3
 RESTART_WAIT_TIME=20 # Seconds to wait between stack rm and deploy

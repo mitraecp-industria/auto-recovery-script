@@ -5,9 +5,7 @@ Requires=docker.service
 
 [Service]
 Type=simple
-# Assumes the scripts folder is copied to /home/mitra/app/guacamole/scripts/
-# Adjust this path if you place the script elsewhere.
-ExecStart=/bin/bash /home/mitra/app/guacamole/monitor_mitra.sh
+ExecStart=/bin/bash /mnt/mitradisk/app/hp/monitor_mitra.sh
 Restart=always
 RestartSec=10
 User=root
