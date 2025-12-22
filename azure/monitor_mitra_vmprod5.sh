@@ -56,27 +56,15 @@ while true; do
         if [ $FAILURE_COUNT -ge $MAX_FAILURES ]; then
             log_message "Max failures reached. Initiating restart sequence..."
             
-            # 1. Run thread dump script
-            if [ -f "$APP_DIR/gerar_thread_dump.sh" ]; then
-                log_message "Generating thread dump..."
-                # Assuming the script needs to be run from its directory or handles paths correctly.
-                # The user command was: sudo bash gerar_thread_dump.sh guacamole4436
-                # We are running as root (via systemd or sudo), so sudo inside might be redundant but harmless if NOPASSWD.
-                # Adjusting to run bash directly.
-                (cd "$APP_DIR" && bash gerar_thread_dump.sh "$STACK_NAME") >> "$LOG_FILE" 2>&1
-            else
-                log_message "Warning: Thread dump script not found at $APP_DIR/gerar_thread_dump.sh"
-            fi
-            
-            # 2. Remove docker stack
+            # 1. Remove docker stack
             log_message "Removing docker stack: $STACK_NAME"
             docker stack rm "$STACK_NAME" >> "$LOG_FILE" 2>&1
             
-            # 3. Wait
+            # 2. Wait
             log_message "Waiting ${RESTART_WAIT_TIME} seconds..."
             sleep "$RESTART_WAIT_TIME"
             
-            # 4. Deploy docker stack
+            # 3. Deploy docker stack
             COMPOSE_FILE="$APP_DIR/docker-compose.yaml"
             if [ -f "$COMPOSE_FILE" ]; then
                 log_message "Deploying docker stack from $COMPOSE_FILE"
@@ -85,7 +73,7 @@ while true; do
                 log_message "CRITICAL ERROR: Docker compose file not found at $COMPOSE_FILE"
             fi
 
-            # 5. Wait for restart sequence to complete
+            # 4. Wait for restart sequence to complete
             sleep "$WAITING_AFTER_RESTART"
             
             # Reset counter after restart attempt to allow time for startup
